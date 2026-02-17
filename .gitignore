@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+
+# Convex generated files (regenerated on npx convex dev)
+convex/_generated/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test / scratch files
+test_gemini.py
+convex_rules.txt
+
+# Audio files (user data, not source code)
+*.ogg
+*.mp3
+*.wav
+*.m4a
