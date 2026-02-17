@@ -81,4 +81,11 @@ export default defineSchema({
     })
         .index("by_status", ["status"])
         .index("by_orderId", ["orderId"]),
+
+    // ── Users (simple auth) ──
+    users: defineTable({
+        username: v.string(),
+        password: v.string(),
+        role: v.union(v.literal("admin"), v.literal("user")),
+    }).index("by_username", ["username"]),
 });
