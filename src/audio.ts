@@ -25,13 +25,15 @@ export function stopRecording(): Promise<AudioData> {
     return new Promise((resolve, reject) => {
         if (!mediaRecorder) return reject(new Error("No active recording"));
         mediaRecorder.onstop = async () => {
-            const blob = new Blob(chunks, { type: mediaRecorder!.mimeType });
+            const recorderMime = mediaRecorder!.mimeType; // actual format browser used
+            const blob = new Blob(chunks, { type: recorderMime });
             // stop all tracks
             mediaRecorder!.stream.getTracks().forEach((t) => t.stop());
             const base64 = await blobToBase64(blob);
-            // Gemini accepts audio/ogg for both webm-opus and ogg-opus
-            const mimeType = "audio/ogg";
-            resolve({ base64, mimeType, fileName: "recording.ogg" });
+            // Pass the real MIME type (strip codecs param for Gemini)
+            const mimeType = recorderMime.includes("webm") ? "audio/webm" : "audio/ogg";
+            const ext = recorderMime.includes("webm") ? "webm" : "ogg";
+            resolve({ base64, mimeType, fileName: `recording.${ext}` });
         };
         mediaRecorder.stop();
     });
