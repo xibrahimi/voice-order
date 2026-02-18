@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Mic, Square, Upload } from "lucide-react";
 
 interface Props {
@@ -13,6 +13,12 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        return () => {
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+        };
+    }, [audioUrl]);
 
     const blobToBase64 = (blob: Blob): Promise<string> =>
         new Promise((resolve, reject) => {
@@ -35,7 +41,10 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
         mr.start();
         mediaRecorderRef.current = mr;
         setRecording(true);
-        setAudioUrl(null);
+        setAudioUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+        });
     };
 
     const stopRecording = async () => {
@@ -55,7 +64,10 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
         // Use the real MIME type the browser recorded in (strip codecs param)
         const actualMime = mr.mimeType.includes("webm") ? "audio/webm" : "audio/ogg";
         const ext = mr.mimeType.includes("webm") ? "webm" : "ogg";
-        setAudioUrl(url);
+        setAudioUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return url;
+        });
         setFileName(`recording.${ext}`);
         setRecording(false);
 
@@ -63,34 +75,58 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
     };
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        try {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-        const base64 = await blobToBase64(file);
-        const url = URL.createObjectURL(file);
-        setAudioUrl(url);
-        setFileName(file.name);
+            const base64 = await blobToBase64(file);
+            const url = URL.createObjectURL(file);
+            setAudioUrl((prev) => {
+                if (prev) URL.revokeObjectURL(prev);
+                return url;
+            });
+            setFileName(file.name);
 
-        let mimeType = file.type || "audio/ogg";
-        if (mimeType === "audio/mpeg") mimeType = "audio/mp3";
-        if (mimeType === "application/octet-stream") {
-            const ext = file.name.split(".").pop()?.toLowerCase();
-            const map: Record<string, string> = {
-                mp3: "audio/mp3", ogg: "audio/ogg", wav: "audio/wav",
-                m4a: "audio/m4a", aac: "audio/aac", flac: "audio/flac",
-                webm: "audio/webm",
-            };
-            mimeType = map[ext || ""] || "audio/ogg";
+            let mimeType = file.type || "audio/ogg";
+            if (mimeType === "audio/mpeg") mimeType = "audio/mp3";
+            if (mimeType === "application/octet-stream") {
+                const ext = file.name.split(".").pop()?.toLowerCase();
+                const map: Record<string, string> = {
+                    mp3: "audio/mp3", ogg: "audio/ogg", wav: "audio/wav",
+                    m4a: "audio/m4a", aac: "audio/aac", flac: "audio/flac",
+                    webm: "audio/webm",
+                };
+                mimeType = map[ext || ""] || "audio/ogg";
+            }
+
+            onAudioReady(base64, mimeType);
+        } catch (err: any) {
+            alert("Error: " + (err?.message || "Unable to read audio file"));
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
-
-        onAudioReady(base64, mimeType);
     };
+
+    const handleRecordToggle = async () => {
+        try {
+            if (recording) {
+                await stopRecording();
+            } else {
+                await startRecording();
+            }
+        } catch (err: any) {
+            setRecording(false);
+            alert("Error: " + (err?.message || "Microphone access failed"));
+        }
+    };
+
+    const uploadDisabled = disabled || recording;
 
     return (
         <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
-                    onClick={recording ? stopRecording : startRecording}
+                    onClick={() => void handleRecordToggle()}
                     disabled={disabled && !recording}
                     className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none ${recording
                         ? "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse-record"
@@ -110,14 +146,14 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
                     )}
                 </button>
                 <span className="text-xs text-muted-foreground">or</span>
-                <label className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none ${disabled ? "cursor-not-allowed opacity-50 bg-secondary text-muted-foreground" : "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
+                <label className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none ${uploadDisabled ? "cursor-not-allowed opacity-50 bg-secondary text-muted-foreground" : "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
                     <Upload className="w-4 h-4" /> Upload File
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept=".mp3,.ogg,.wav,.m4a,.aac,.flac,.webm"
                         hidden
-                        disabled={disabled}
+                        disabled={uploadDisabled}
                         onChange={handleFile}
                     />
                 </label>

@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Lock, LogIn, Eye, EyeOff } from "lucide-react";
+import {
+    readStoredJSON,
+    removeStoredItem,
+    writeStoredJSON,
+} from "../lib/storage";
 
 interface Props {
     children: React.ReactNode;
@@ -9,13 +14,18 @@ interface Props {
 
 const SESSION_KEY = "voiceorder_session";
 
-function getSession() {
-    try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch {
+type StoredSession = {
+    username: string;
+    password: string;
+};
+
+function normalizeSession(value: unknown): StoredSession | null {
+    if (!value || typeof value !== "object") return null;
+    const record = value as Record<string, unknown>;
+    if (typeof record.username !== "string" || typeof record.password !== "string") {
         return null;
     }
+    return { username: record.username, password: record.password };
 }
 
 export function LoginGate({ children }: Props) {
@@ -24,31 +34,53 @@ export function LoginGate({ children }: Props) {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [checking, setChecking] = useState(false);
-    const [session, setSession] = useState<any>(getSession);
+    const [session, setSession] = useState<StoredSession | null>(() =>
+        normalizeSession(readStoredJSON<unknown>(SESSION_KEY, null)),
+    );
+    const [authBootstrapReady, setAuthBootstrapReady] = useState(false);
 
     // Seed admin on first load
     const seedAdmin = useMutation(api.auth.seedAdmin);
-    const [seeded, setSeeded] = useState(false);
     useEffect(() => {
-        if (!seeded) {
-            setSeeded(true);
-            seedAdmin().catch(() => { });
-        }
-    }, [seeded, seedAdmin]);
+        let cancelled = false;
+        seedAdmin()
+            .catch(() => { })
+            .finally(() => {
+                if (!cancelled) setAuthBootstrapReady(true);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [seedAdmin]);
 
     // Validate session against DB on load
+    const shouldCheckSession = Boolean(session) && authBootstrapReady;
     const sessionCheck = useQuery(
         api.auth.login,
-        session ? { username: session.username, password: session.password } : "skip",
+        shouldCheckSession
+            ? { username: session!.username, password: session!.password }
+            : "skip",
     );
 
-    // If session is invalid, clear it
+    // Finalize the current session attempt after query resolves.
     useEffect(() => {
-        if (session && sessionCheck && !sessionCheck.success) {
-            localStorage.removeItem(SESSION_KEY);
-            setSession(null);
+        if (!session || !authBootstrapReady || sessionCheck === undefined) return;
+
+        if (sessionCheck.success) {
+            writeStoredJSON<StoredSession>(SESSION_KEY, session);
+            setChecking(false);
+            setError("");
+            return;
         }
-    }, [session, sessionCheck]);
+
+        removeStoredItem(SESSION_KEY);
+        setSession(null);
+        setChecking(false);
+        setError(sessionCheck.error || "Invalid credentials");
+    }, [session, authBootstrapReady, sessionCheck]);
+
+    const isRestoringSession =
+        Boolean(session) && (!authBootstrapReady || sessionCheck === undefined);
 
     // If session is valid, show children
     if (session && sessionCheck?.success) {
@@ -62,7 +94,7 @@ export function LoginGate({ children }: Props) {
                         </span>
                         <button
                             onClick={() => {
-                                localStorage.removeItem(SESSION_KEY);
+                                removeStoredItem(SESSION_KEY);
                                 setSession(null);
                                 setUsername("");
                                 setPassword("");
@@ -78,6 +110,17 @@ export function LoginGate({ children }: Props) {
         );
     }
 
+    if (isRestoringSession) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center p-4">
+                <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground flex items-center gap-3">
+                    <div className="spinner" />
+                    Restoring session...
+                </div>
+            </div>
+        );
+    }
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!username.trim() || !password.trim()) {
@@ -88,16 +131,13 @@ export function LoginGate({ children }: Props) {
         setChecking(true);
         setError("");
 
-        // We'll use the query result, but since queries are reactive,
-        // we store credentials to localStorage and let the query re-evaluate
         try {
             const stored = { username: username.trim(), password: password.trim() };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(stored));
             setSession(stored);
         } catch {
             setError("Something went wrong");
+            setChecking(false);
         }
-        setChecking(false);
     };
 
     return (
@@ -162,7 +202,7 @@ export function LoginGate({ children }: Props) {
 
                     <button
                         type="submit"
-                        disabled={checking}
+                        disabled={checking || !authBootstrapReady}
                         className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
                         <LogIn className="w-4 h-4" />

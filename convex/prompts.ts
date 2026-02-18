@@ -6,7 +6,10 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { DEFAULT_SYSTEM_PROMPT } from "./systemPrompt";
+import {
+    DEFAULT_SYSTEM_PROMPT,
+    ensurePromptRequestsTranscript,
+} from "./systemPrompt";
 
 // ── Public: Get the currently active system prompt ──
 export const getActive = query({
@@ -46,7 +49,7 @@ export const seed = mutation({
         if (existing) throw new Error("Prompt already seeded");
 
         return await ctx.db.insert("prompt_versions", {
-            prompt: DEFAULT_SYSTEM_PROMPT,
+            prompt: ensurePromptRequestsTranscript(DEFAULT_SYSTEM_PROMPT),
             version: 1,
             status: "active",
             source: "seed",
@@ -79,7 +82,7 @@ export const rollback = mutation({
         const nextVersion = (latest?.version ?? 0) + 1;
 
         return await ctx.db.insert("prompt_versions", {
-            prompt: target.prompt,
+            prompt: ensurePromptRequestsTranscript(target.prompt),
             version: nextVersion,
             status: "active",
             source: "admin_rollback",
@@ -154,7 +157,7 @@ export const saveImprovedPrompt = internalMutation({
         const nextVersion = (latest?.version ?? 0) + 1;
 
         const newVersionId = await ctx.db.insert("prompt_versions", {
-            prompt: args.newPrompt,
+            prompt: ensurePromptRequestsTranscript(args.newPrompt),
             version: nextVersion,
             status: "active",
             source: "admin_correction",

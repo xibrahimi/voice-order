@@ -13,6 +13,9 @@ export function PromptAdmin() {
     const activePrompt = useQuery(api.prompts.getActive);
     const promptHistory = useQuery(api.prompts.getHistory);
     const pendingCorrections = useQuery(api.corrections.listPending);
+    const activePromptLoading = activePrompt === undefined;
+    const promptHistoryLoading = promptHistory === undefined;
+    const pendingCorrectionsLoading = pendingCorrections === undefined;
 
     const addCorrection = useMutation(api.corrections.addCorrection);
     const applyCorrections = useMutation(api.prompts.applyCorrections);
@@ -84,7 +87,9 @@ export function PromptAdmin() {
                         Active System Prompt
                     </h2>
                 </div>
-                {activePrompt ? (
+                {activePromptLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading active prompt...</p>
+                ) : activePrompt ? (
                     <>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
@@ -156,10 +161,12 @@ export function PromptAdmin() {
                         🔄
                     </span>
                     <h2 className="text-lg font-semibold text-foreground">
-                        Pending Corrections ({pendingCorrections?.length || 0})
+                        Pending Corrections ({pendingCorrectionsLoading ? "..." : pendingCorrections?.length || 0})
                     </h2>
                 </div>
-                {pendingCorrections && pendingCorrections.length > 0 ? (
+                {pendingCorrectionsLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading pending corrections...</p>
+                ) : pendingCorrections && pendingCorrections.length > 0 ? (
                     <div className="space-y-3">
                         {pendingCorrections.map((c: any) => (
                             <div
@@ -207,7 +214,9 @@ export function PromptAdmin() {
                         Prompt History
                     </h2>
                 </div>
-                {promptHistory && promptHistory.length > 0 ? (
+                {promptHistoryLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading prompt history...</p>
+                ) : promptHistory && promptHistory.length > 0 ? (
                     <div className="space-y-2">
                         {promptHistory.map((v: any) => (
                             <div

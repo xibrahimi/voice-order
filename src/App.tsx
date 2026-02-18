@@ -6,34 +6,48 @@ import { OrderResults } from "./components/OrderResults";
 import { OrderHistory } from "./components/OrderHistory";
 import { PromptAdmin } from "./components/PromptAdmin";
 import { Settings, ArrowLeft, Plus, Clock } from "lucide-react";
+import { readStoredJSON, writeStoredJSON } from "./lib/storage";
 
 type View = "new" | "history" | "admin";
 
-// localStorage helpers
+type PersistedAppState = {
+    companyId: string;
+    companyName: string;
+    orderId: string | null;
+    view: View;
+};
+
 const STORAGE_KEY = "voiceorder_state";
-function loadState() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : {};
-    } catch {
-        return {};
-    }
-}
-function saveState(patch: Record<string, any>) {
-    try {
-        const cur = loadState();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cur, ...patch }));
-    } catch { }
+
+const DEFAULT_PERSISTED_STATE: PersistedAppState = {
+    companyId: "",
+    companyName: "",
+    orderId: null,
+    view: "new",
+};
+
+function normalizeView(value: unknown): View {
+    if (value === "history" || value === "admin" || value === "new") return value;
+    return "new";
 }
 
 export default function App() {
-    const saved = loadState();
-    const [companyId, setCompanyId] = useState(saved.companyId || "");
-    const [companyName, setCompanyName] = useState(saved.companyName || "");
+    const saved = readStoredJSON<Partial<PersistedAppState>>(
+        STORAGE_KEY,
+        DEFAULT_PERSISTED_STATE,
+    );
+    const [companyId, setCompanyId] = useState(
+        typeof saved.companyId === "string" ? saved.companyId : "",
+    );
+    const [companyName, setCompanyName] = useState(
+        typeof saved.companyName === "string" ? saved.companyName : "",
+    );
     const [products, setProducts] = useState<any[]>([]);
-    const [orderId, setOrderId] = useState<string | null>(saved.orderId || null);
+    const [orderId, setOrderId] = useState<string | null>(
+        typeof saved.orderId === "string" ? saved.orderId : null,
+    );
     const [loading, setLoading] = useState(false);
-    const [view, setView] = useState<View>(saved.view || "new");
+    const [view, setView] = useState<View>(normalizeView(saved.view));
 
     const listCompanies = useAction(api.products.listCompanies);
     const listProducts = useAction(api.products.listProducts);
@@ -44,14 +58,17 @@ export default function App() {
         api.orders.get,
         orderId ? { orderId: orderId as any } : "skip",
     );
-    const isOrderInFlight = Boolean(orderId) && (!order || order.status === "processing");
+    const isOrderLoading = Boolean(orderId) && order === undefined;
+    const isOrderMissing = Boolean(orderId) && order === null;
+    const isOrderInFlight =
+        Boolean(orderId) && (order === undefined || order?.status === "processing");
 
     const [companies, setCompanies] = useState<any[]>([]);
     const [companiesLoaded, setCompaniesLoaded] = useState(false);
 
     // Persist key state to localStorage
     useEffect(() => {
-        saveState({
+        writeStoredJSON<PersistedAppState>(STORAGE_KEY, {
             orderId: isOrderInFlight ? orderId : null,
             companyId,
             companyName,
@@ -145,7 +162,7 @@ export default function App() {
 
     const handleGoToNew = () => {
         setView("new");
-        if (!order || order.status !== "processing") {
+        if (order === null || (order && order.status !== "processing")) {
             setOrderId(null);
         }
     };
@@ -309,10 +326,23 @@ export default function App() {
                                     <span className="text-sm">Uploading audio...</span>
                                 </div>
                             )}
-                            {!loading && orderId && !order && (
+                            {!loading && isOrderLoading && (
                                 <div className="flex items-center gap-3 text-muted-foreground">
                                     <div className="spinner" />
                                     <span className="text-sm">Loading order...</span>
+                                </div>
+                            )}
+                            {!loading && isOrderMissing && (
+                                <div className="space-y-3">
+                                    <div className="text-sm text-destructive bg-destructive/10 rounded-lg p-3">
+                                        Previous order is no longer available.
+                                    </div>
+                                    <button
+                                        onClick={handleStartNewOrder}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                    >
+                                        Start New Order
+                                    </button>
                                 </div>
                             )}
                             {order?.status === "processing" && (

@@ -2,7 +2,10 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { DEFAULT_SYSTEM_PROMPT } from "./systemPrompt";
+import {
+    DEFAULT_SYSTEM_PROMPT,
+    ensurePromptRequestsTranscript,
+} from "./systemPrompt";
 
 // ── Internal: Fetch products from Sanity ──
 export const fetchProductsInternal = internalAction({
@@ -41,7 +44,9 @@ export const processOrder = internalAction({
             const activePrompt: any = await ctx.runQuery(
                 internal.orders.getActivePrompt,
             );
-            const systemPrompt = activePrompt?.prompt || DEFAULT_SYSTEM_PROMPT;
+            const systemPrompt = ensurePromptRequestsTranscript(
+                activePrompt?.prompt || DEFAULT_SYSTEM_PROMPT,
+            );
             const promptVersionId = activePrompt?._id;
 
             // 3. Fetch products from Sanity

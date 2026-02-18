@@ -1,3 +1,18 @@
+const REQUIRED_JSON_RESPONSE_FORMAT = `{"transcript":"full transcription of what the speaker said in their original language","items":[{"name":"exact catalog name","size":"catalog size","price":number,"quantity":number,"unit":"naali or adad","confidence":"high|medium|low","notes":"any assumption"}],"unmatched":[{"heard":"what was said","reason":"why no match"}]}`;
+
+export function ensurePromptRequestsTranscript(prompt: string): string {
+    if (/"transcript"\s*:/.test(prompt)) return prompt;
+
+    const trimmed = prompt.trimEnd();
+    const replaced = trimmed.replace(
+        /JSON response format:\s*\n\{"items":/m,
+        `JSON response format:\n{"transcript":"full transcription of what the speaker said in their original language","items":`,
+    );
+    if (replaced !== trimmed) return replaced;
+
+    return `${trimmed}\n\nJSON response format:\n${REQUIRED_JSON_RESPONSE_FORMAT}`;
+}
+
 export const DEFAULT_SYSTEM_PROMPT = `You are a plumbing product order assistant for a Pakistani building materials distributor.
 You receive a voice note (audio) and a product catalog. The speaker uses Urdu, Hindi, English, or a mix.
 
@@ -14,4 +29,4 @@ Domain knowledge:
 - ONLY return products from the catalog. Never invent.
 
 JSON response format:
-{"transcript":"full transcription of what the speaker said in their original language","items":[{"name":"exact catalog name","size":"catalog size","price":number,"quantity":number,"unit":"naali or adad","confidence":"high|medium|low","notes":"any assumption"}],"unmatched":[{"heard":"what was said","reason":"why no match"}]}`;
+${REQUIRED_JSON_RESPONSE_FORMAT}`;
