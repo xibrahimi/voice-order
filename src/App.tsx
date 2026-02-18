@@ -62,6 +62,7 @@ export default function App() {
     const isOrderMissing = Boolean(orderId) && order === null;
     const isOrderInFlight =
         Boolean(orderId) && (order === undefined || order?.status === "processing");
+    const isAudioInputLocked = loading || isOrderLoading || order?.status === "processing";
 
     const [companies, setCompanies] = useState<any[]>([]);
     const [companiesLoaded, setCompaniesLoaded] = useState(false);
@@ -306,8 +307,15 @@ export default function App() {
                             </div>
                             <AudioInput
                                 onAudioReady={handleAudioReady}
-                                disabled={loading || order?.status === "processing"}
+                                disabled={isAudioInputLocked}
+                                externalAudioUrl={order?.audioUrl || null}
+                                externalFileName={order?.audioUrl ? "uploaded-audio" : ""}
                             />
+                            {isAudioInputLocked && (
+                                <p className="mt-3 text-xs text-muted-foreground">
+                                    Audio input is temporarily disabled while the current order is uploading/processing.
+                                </p>
+                            )}
                         </div>
 
                         {/* Step 3: Processing Status */}

@@ -57,7 +57,12 @@ export const get = query({
             .withIndex("by_orderId", (q) => q.eq("orderId", args.orderId))
             .collect();
 
-        return { ...order, items, unmatched };
+        let audioUrl = null;
+        if (order.audioStorageId) {
+            audioUrl = await ctx.storage.getUrl(order.audioStorageId);
+        }
+
+        return { ...order, items, unmatched, audioUrl };
     },
 });
 

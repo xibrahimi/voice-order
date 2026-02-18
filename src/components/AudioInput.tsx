@@ -4,9 +4,16 @@ import { Mic, Square, Upload } from "lucide-react";
 interface Props {
     onAudioReady: (base64: string, mimeType: string) => void;
     disabled?: boolean;
+    externalAudioUrl?: string | null;
+    externalFileName?: string;
 }
 
-export function AudioInput({ onAudioReady, disabled = false }: Props) {
+export function AudioInput({
+    onAudioReady,
+    disabled = false,
+    externalAudioUrl = null,
+    externalFileName = "",
+}: Props) {
     const [recording, setRecording] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [fileName, setFileName] = useState("");
@@ -121,6 +128,8 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
     };
 
     const uploadDisabled = disabled || recording;
+    const shownAudioUrl = audioUrl || externalAudioUrl;
+    const shownFileName = fileName || externalFileName;
 
     return (
         <div className="space-y-3">
@@ -161,10 +170,12 @@ export function AudioInput({ onAudioReady, disabled = false }: Props) {
             {recording && (
                 <span className="text-xs text-red-400">● Recording...</span>
             )}
-            {audioUrl && (
+            {shownAudioUrl && (
                 <div className="space-y-1">
-                    <audio src={audioUrl} controls className="w-full" />
-                    <span className="text-xs text-muted-foreground">{fileName}</span>
+                    <audio src={shownAudioUrl} controls className="w-full" />
+                    <span className="text-xs text-muted-foreground">
+                        {shownFileName || "audio"}
+                    </span>
                 </div>
             )}
         </div>
