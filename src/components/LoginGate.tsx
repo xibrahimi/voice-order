@@ -155,7 +155,7 @@ export function LoginGate({ children }: Props) {
                 </div>
 
                 {/* Login Form */}
-                <form onSubmit={handleLogin} className="rounded-xl border border-border bg-card p-5 sm:p-6 space-y-4">
+                <form onSubmit={handleLogin} className="rounded-xl border border-border bg-card p-5 sm:p-6 space-y-4 shadow-lg shadow-black/20">
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-foreground">
                             Username
@@ -203,7 +203,7 @@ export function LoginGate({ children }: Props) {
                     <button
                         type="submit"
                         disabled={checking || !authBootstrapReady}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[48px] rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
                         <LogIn className="w-4 h-4" />
                         {checking ? "Signing in..." : "Sign In"}

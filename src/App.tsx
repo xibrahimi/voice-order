@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { AudioInput } from "./components/AudioInput";
@@ -53,6 +53,7 @@ export default function App() {
     const [pendingAudio, setPendingAudio] = useState<PendingAudio | null>(null);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<View>(normalizeView(saved.view));
+    const resultsRef = useRef<HTMLDivElement>(null);
 
     const listCompanies = useAction(api.products.listCompanies);
     const listProducts = useAction(api.products.listProducts);
@@ -81,6 +82,13 @@ export default function App() {
             view,
         });
     }, [orderId, companyId, companyName, view, isOrderInFlight]);
+
+    // Auto-scroll to results when order completes
+    useEffect(() => {
+        if (order?.status === "completed" && resultsRef.current) {
+            resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, [order?.status]);
 
     // Load companies and auto-select "Steel X"
     useEffect(() => {
@@ -281,7 +289,7 @@ export default function App() {
                         {/* Step 1: Company */}
                         <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 text-primary text-xs sm:text-sm font-bold flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center flex-shrink-0">
                                     1
                                 </span>
                                 <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -316,7 +324,7 @@ export default function App() {
                         {/* Step 2: Audio */}
                         <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 text-primary text-xs sm:text-sm font-bold flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center flex-shrink-0">
                                     2
                                 </span>
                                 <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -337,9 +345,9 @@ export default function App() {
                         </div>
 
                         {/* Step 3: Processing Status */}
-                        <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+                        <div className={`rounded-xl border bg-card p-4 sm:p-6 ${order?.status === "processing" ? "step-active border-primary/30" : "border-border"}`}>
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 text-primary text-xs sm:text-sm font-bold flex items-center justify-center flex-shrink-0">
+                                <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center flex-shrink-0">
                                     3
                                 </span>
                                 <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -347,28 +355,34 @@ export default function App() {
                                 </h2>
                             </div>
                             {!loading && !isOrderLoading && !orderId && pendingAudio && (
-                                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 p-3 flex items-center justify-between gap-3">
-                                    <span className="text-sm text-foreground">
+                                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 p-3 space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
+                                    <span className="text-sm text-foreground block">
                                         Audio is ready. Click to create quotation.
                                     </span>
                                     <button
                                         onClick={handleCreateQuotation}
-                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                        className="w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
                                     >
                                         Create Quotation
                                     </button>
                                 </div>
                             )}
                             {loading && (
-                                <div className="flex items-center gap-3 text-muted-foreground">
-                                    <div className="spinner" />
-                                    <span className="text-sm">Uploading audio...</span>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3 text-muted-foreground">
+                                        <div className="spinner" />
+                                        <span className="text-sm">Uploading audio...</span>
+                                    </div>
+                                    <div className="skeleton-pulse h-2 w-3/4 rounded" />
                                 </div>
                             )}
                             {!loading && isOrderLoading && (
-                                <div className="flex items-center gap-3 text-muted-foreground">
-                                    <div className="spinner" />
-                                    <span className="text-sm">Loading order...</span>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3 text-muted-foreground">
+                                        <div className="spinner" />
+                                        <span className="text-sm">Loading order...</span>
+                                    </div>
+                                    <div className="skeleton-pulse h-2 w-1/2 rounded" />
                                 </div>
                             )}
                             {!loading && isOrderMissing && (
@@ -385,23 +399,42 @@ export default function App() {
                                 </div>
                             )}
                             {order?.status === "processing" && (
-                                <div className="flex items-center gap-3 text-muted-foreground">
-                                    <div className="spinner" />
-                                    <span className="text-sm">
-                                        Analyzing audio with Gemini 3 Flash...
-                                    </span>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 text-muted-foreground">
+                                        <div className="spinner" />
+                                        <span className="text-sm">
+                                            Analyzing audio with Gemini 3 Flash...
+                                        </span>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div className="skeleton-pulse h-2 w-full rounded" />
+                                        <div className="skeleton-pulse h-2 w-4/5 rounded" />
+                                        <div className="skeleton-pulse h-2 w-3/5 rounded" />
+                                    </div>
                                 </div>
                             )}
                             {order?.status === "completed" && (
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-sm font-medium">
-                                        ✅ Processing complete — {order.items?.length || 0} products matched
-                                    </span>
+                                <div className="space-y-2">
+                                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <span className="text-sm font-semibold text-emerald-400">
+                                                    ✅ {order.items?.length || 0} products matched
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={handleStartNewOrder}
+                                                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                            >
+                                                New Order
+                                            </button>
+                                        </div>
+                                    </div>
                                     <button
-                                        onClick={handleStartNewOrder}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                        onClick={() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                                        className="w-full py-2.5 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/15 transition-colors"
                                     >
-                                        Start New Order
+                                        View Results ↓
                                     </button>
                                 </div>
                             )}
@@ -427,7 +460,9 @@ export default function App() {
 
                         {/* Results */}
                         {order?.status === "completed" && (
-                            <OrderResults order={order} companyName={companyName} />
+                            <div ref={resultsRef}>
+                                <OrderResults order={order} companyName={companyName} />
+                            </div>
                         )}
                     </>
                 )}

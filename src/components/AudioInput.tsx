@@ -137,7 +137,7 @@ export function AudioInput({
                 <button
                     onClick={() => void handleRecordToggle()}
                     disabled={disabled && !recording}
-                    className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none ${recording
+                    className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 min-h-[48px] rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none active:scale-95 ${recording
                         ? "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse-record"
                         : disabled
                             ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
@@ -155,7 +155,7 @@ export function AudioInput({
                     )}
                 </button>
                 <span className="text-xs text-muted-foreground">or</span>
-                <label className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none ${uploadDisabled ? "cursor-not-allowed opacity-50 bg-secondary text-muted-foreground" : "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
+                <label className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 min-h-[48px] rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none active:scale-95 ${uploadDisabled ? "cursor-not-allowed opacity-50 bg-secondary text-muted-foreground" : "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
                     <Upload className="w-4 h-4" /> Upload File
                     <input
                         ref={fileInputRef}

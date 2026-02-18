@@ -334,7 +334,42 @@ export function OrderHistory({ companyId, companyName }: Props) {
                                         <h4 className="text-sm font-semibold text-foreground mb-2">
                                             Matched Products ({items.length})
                                         </h4>
-                                        <div className="table-wrap">
+                                        {/* Mobile card layout — 3-tier visual hierarchy */}
+                                        <div className="sm:hidden space-y-2.5">
+                                            {items.map((item: any, i: number) => {
+                                                const lineTotal = (item.catalogPrice || 0) * (item.quantity || 0);
+                                                return (
+                                                    <div key={item._id || i} className="card-accent rounded-lg border border-border/60 bg-card p-3.5 space-y-2">
+                                                        {/* Tier 1: Product name + badge */}
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <h4 className="text-[15px] font-semibold text-foreground leading-snug min-w-0">
+                                                                <span className="text-muted-foreground font-normal text-xs mr-1">{i + 1}.</span>
+                                                                {item.name}
+                                                            </h4>
+                                                            {confidenceBadge(item.confidence)}
+                                                        </div>
+                                                        {/* Tier 2: Compact metadata tokens */}
+                                                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/60">{item.size}</span>
+                                                            <span className="text-border/80">·</span>
+                                                            <span>{item.quantity} {item.unit}</span>
+                                                        </div>
+                                                        {/* Tier 3: Price row */}
+                                                        <div className="flex items-center justify-between pt-1.5 border-t border-border/30">
+                                                            <span className="text-xs text-muted-foreground tabular-nums">₨ {(item.catalogPrice || 0).toLocaleString()} × {item.quantity}</span>
+                                                            <span className="text-sm font-bold text-primary tabular-nums">₨ {lineTotal.toLocaleString()}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {/* Grand Total — visually distinct */}
+                                            <div className="flex items-center justify-between p-4 rounded-lg bg-primary/15 border border-primary/30">
+                                                <span className="text-sm font-bold text-foreground">Grand Total</span>
+                                                <span className="text-lg font-bold text-primary tabular-nums">₨ {total.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                        {/* Desktop table layout */}
+                                        <div className="hidden sm:block table-wrap">
                                             <table>
                                                 <thead>
                                                     <tr>

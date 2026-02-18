@@ -119,7 +119,43 @@ export function OrderResults({ order, companyName }: Props) {
                             <FileDown className="w-4 h-4" /> PDF
                         </button>
                     </div>
-                    <div className="table-wrap">
+                    {/* Mobile card layout — 3-tier visual hierarchy */}
+                    <div className="sm:hidden space-y-2.5">
+                        {items.map((item: any, i: number) => {
+                            const lineTotal = item.catalogPrice * item.quantity;
+                            return (
+                                <div key={item._id || i} className="card-accent rounded-lg border border-border/60 bg-card p-3.5 space-y-2">
+                                    {/* Tier 1: Product name + badge (F-pattern: left=name, right=badge) */}
+                                    <div className="flex items-start justify-between gap-2">
+                                        <h4 className="text-[15px] font-semibold text-foreground leading-snug min-w-0">
+                                            <span className="text-muted-foreground font-normal text-xs mr-1">{i + 1}.</span>
+                                            {item.name}
+                                        </h4>
+                                        {confidenceBadge(item.confidence)}
+                                    </div>
+                                    {/* Tier 2: Compact metadata tokens (Miller's Law — chunked) */}
+                                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/60">{item.size}</span>
+                                        <span className="text-border/80">·</span>
+                                        <span>{item.quantity} {item.unit}</span>
+                                    </div>
+                                    {/* Tier 3: Price row (F-pattern: unit price left, total right with primary color) */}
+                                    <div className="flex items-center justify-between pt-1.5 border-t border-border/30">
+                                        <span className="text-xs text-muted-foreground tabular-nums">₨ {item.catalogPrice.toLocaleString()} × {item.quantity}</span>
+                                        <span className="text-sm font-bold text-primary tabular-nums">₨ {lineTotal.toLocaleString()}</span>
+                                    </div>
+                                    {item.notes && <p className="text-[11px] text-muted-foreground/80 italic">{item.notes}</p>}
+                                </div>
+                            );
+                        })}
+                        {/* Grand Total — visually distinct (Peak-End Rule) */}
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-primary/15 border border-primary/30">
+                            <span className="text-sm font-bold text-foreground">Grand Total</span>
+                            <span className="text-lg font-bold text-primary tabular-nums">₨ {grandTotal.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    {/* Desktop table layout */}
+                    <div className="hidden sm:block table-wrap">
                         <table>
                             <thead>
                                 <tr>
