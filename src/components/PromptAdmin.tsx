@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Plus, Rocket, RotateCcw, X, Sprout } from "lucide-react";
+import { Plus, Rocket, RotateCcw, X, Sprout, Sun, Moon } from "lucide-react";
 
-export function PromptAdmin() {
+interface PromptAdminProps {
+    theme: "light" | "dark";
+    toggleTheme: () => void;
+}
+
+export function PromptAdmin({ theme, toggleTheme }: PromptAdminProps) {
     const [manualTerm, setManualTerm] = useState("");
     const [manualMeaning, setManualMeaning] = useState("");
     const [applying, setApplying] = useState(false);
@@ -77,6 +82,40 @@ export function PromptAdmin() {
 
     return (
         <div className="space-y-6">
+            {/* Preferences */}
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <span className="w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
+                        ⚙️
+                    </span>
+                    <h2 className="text-lg font-semibold text-foreground">
+                        Preferences
+                    </h2>
+                </div>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-foreground">Appearance</p>
+                        <p className="text-xs text-muted-foreground">Switch between dark and light mode</p>
+                    </div>
+                    <button
+                        onClick={toggleTheme}
+                        className="relative inline-flex h-8 w-[60px] items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                        style={{ backgroundColor: theme === 'dark' ? 'hsl(var(--secondary))' : 'hsl(var(--primary))' }}
+                        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                    >
+                        <span
+                            className={`inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 ${theme === 'dark' ? 'translate-x-1' : 'translate-x-[31px]'
+                                }`}
+                        >
+                            {theme === 'dark' ? (
+                                <Moon className="w-3.5 h-3.5 text-slate-700" />
+                            ) : (
+                                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                            )}
+                        </span>
+                    </button>
+                </div>
+            </div>
             {/* Active Prompt */}
             <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">

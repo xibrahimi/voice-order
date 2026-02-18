@@ -7,6 +7,7 @@ import { OrderHistory } from "./components/OrderHistory";
 import { PromptAdmin } from "./components/PromptAdmin";
 import { Settings, ArrowLeft, Plus, Clock } from "lucide-react";
 import { readStoredJSON, writeStoredJSON } from "./lib/storage";
+import { useTheme } from "./lib/useTheme";
 
 type View = "new" | "history" | "admin";
 
@@ -54,6 +55,7 @@ export default function App() {
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<View>(normalizeView(saved.view));
     const resultsRef = useRef<HTMLDivElement>(null);
+    const { theme, toggleTheme } = useTheme();
 
     const listCompanies = useAction(api.products.listCompanies);
     const listProducts = useAction(api.products.listProducts);
@@ -140,6 +142,11 @@ export default function App() {
         setPendingAudio({ base64, mimeType });
     };
 
+    const handleAudioReset = () => {
+        setOrderId(null);
+        setPendingAudio(null);
+    };
+
     const handleCreateQuotation = async () => {
         if (!pendingAudio || loading || isOrderLoading || order?.status === "processing") {
             return;
@@ -199,7 +206,7 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-[100dvh] flex flex-col bg-background">
             {/* Header */}
             <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
                 <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
@@ -257,9 +264,9 @@ export default function App() {
                 </div>
             </header>
 
-            <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fade-in">
+            <div className="flex-1 max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fade-in w-full">
                 {view === "admin" ? (
-                    <PromptAdmin />
+                    <PromptAdmin theme={theme} toggleTheme={toggleTheme} />
                 ) : view === "history" ? (
                     <>
                         {/* Company selector for history */}
@@ -333,6 +340,7 @@ export default function App() {
                             </div>
                             <AudioInput
                                 onAudioReady={handleAudioReady}
+                                onAudioReset={handleAudioReset}
                                 disabled={isAudioInputLocked}
                                 externalAudioUrl={order?.audioUrl || null}
                                 externalFileName={order?.audioUrl ? "uploaded-audio" : ""}

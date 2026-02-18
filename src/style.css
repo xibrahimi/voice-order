@@ -4,6 +4,29 @@
 
 @layer base {
   :root {
+    /* Light — warm sand + amber-gold */
+    --background: 40 20% 97%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 8% 93%;
+    --secondary-foreground: 220 14% 20%;
+    --muted: 220 8% 93%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 220 8% 93%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 8% 86%;
+    --input: 220 8% 93%;
+    --ring: 38 92% 50%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark — industrial steel + amber-gold */
     --background: 220 20% 5%;
     --foreground: 40 10% 95%;
     --card: 220 16% 8%;
@@ -21,7 +44,6 @@
     --border: 220 12% 16%;
     --input: 220 14% 14%;
     --ring: 38 92% 55%;
-    --radius: 0.75rem;
   }
 }
 
