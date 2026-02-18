@@ -13,6 +13,7 @@ interface Props {
 export function OrderResults({ order, companyName }: Props) {
     const [teachForm, setTeachForm] = useState<{ heard: string } | null>(null);
     const [teachMeaning, setTeachMeaning] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const addCorrection = useMutation(api.corrections.addCorrection);
 
     const items = order.items || [];
@@ -22,16 +23,21 @@ export function OrderResults({ order, companyName }: Props) {
     for (const item of items) grandTotal += item.catalogPrice * item.quantity;
 
     const submitTeach = async () => {
-        if (!teachForm || !teachMeaning.trim()) return;
-        await addCorrection({
-            orderId: order._id,
-            type: "teach_term",
-            termHeard: teachForm.heard,
-            termMeaning: teachMeaning.trim(),
-        });
-        setTeachForm(null);
-        setTeachMeaning("");
-        alert("Correction saved! Go to Admin → Apply to update the system prompt.");
+        if (!teachForm || !teachMeaning.trim() || submitting) return;
+        setSubmitting(true);
+        try {
+            await addCorrection({
+                orderId: order._id,
+                type: "teach_term",
+                termHeard: teachForm.heard,
+                termMeaning: teachMeaning.trim(),
+            });
+            setTeachForm(null);
+            setTeachMeaning("");
+            alert("Correction saved! Go to Admin → Apply to update the system prompt.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const downloadPDF = () => {
@@ -86,6 +92,18 @@ export function OrderResults({ order, companyName }: Props) {
 
     return (
         <div className="space-y-6">
+            {/* Transcript */}
+            {order.transcript && (
+                <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-3">
+                        🗣️ Transcript
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                        {order.transcript}
+                    </p>
+                </div>
+            )}
+
             {items.length > 0 && (
                 <div className="rounded-xl border border-border bg-card p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -192,9 +210,10 @@ export function OrderResults({ order, companyName }: Props) {
                             </button>
                             <button
                                 onClick={submitTeach}
-                                className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                disabled={submitting}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${submitting ? "bg-primary/50 cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                             >
-                                Save Correction
+                                {submitting ? "Saving..." : "Save Correction"}
                             </button>
                         </div>
                     </div>

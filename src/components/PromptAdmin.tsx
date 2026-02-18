@@ -6,6 +6,9 @@ import { Plus, Rocket, RotateCcw, X, Sprout } from "lucide-react";
 export function PromptAdmin() {
     const [manualTerm, setManualTerm] = useState("");
     const [manualMeaning, setManualMeaning] = useState("");
+    const [applying, setApplying] = useState(false);
+    const [seeding, setSeeding] = useState(false);
+    const [rollingBack, setRollingBack] = useState<string | null>(null);
 
     const activePrompt = useQuery(api.prompts.getActive);
     const promptHistory = useQuery(api.prompts.getHistory);
@@ -29,17 +32,26 @@ export function PromptAdmin() {
     };
 
     const handleApply = async () => {
+        if (applying) return;
+        setApplying(true);
         try {
             await applyCorrections();
             alert("Corrections are being applied. The prompt will update shortly.");
         } catch (err: any) {
             alert("Error: " + err.message);
+        } finally {
+            setApplying(false);
         }
     };
 
     const handleRollback = async (versionId: string) => {
-        if (!confirm("Rollback to this version?")) return;
-        await rollback({ versionId: versionId as any });
+        if (!confirm("Rollback to this version?") || rollingBack) return;
+        setRollingBack(versionId);
+        try {
+            await rollback({ versionId: versionId as any });
+        } finally {
+            setRollingBack(null);
+        }
     };
 
     const handleSeed = async () => {
@@ -62,10 +74,13 @@ JSON response format:
 {"items":[{"name":"exact catalog name","size":"catalog size","price":number,"quantity":number,"unit":"naali or adad","confidence":"high|medium|low","notes":"any assumption"}],"unmatched":[{"heard":"what was said","reason":"why no match"}]}`;
 
         try {
+            setSeeding(true);
             await seedPrompt({ prompt: defaultPrompt });
             alert("System prompt seeded (v1)!");
         } catch (err: any) {
             alert(err.message);
+        } finally {
+            setSeeding(false);
         }
     };
 
@@ -103,9 +118,10 @@ JSON response format:
                         </p>
                         <button
                             onClick={handleSeed}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                            disabled={seeding}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${seeding ? "bg-emerald-500/10 text-emerald-400/50 cursor-not-allowed" : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"}`}
                         >
-                            <Sprout className="w-4 h-4" /> Seed Initial Prompt
+                            <Sprout className="w-4 h-4" /> {seeding ? "Seeding..." : "Seed Initial Prompt"}
                         </button>
                     </div>
                 )}
@@ -182,9 +198,10 @@ JSON response format:
                         ))}
                         <button
                             onClick={handleApply}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                            disabled={applying}
+                            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${applying ? "bg-primary/50 cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                         >
-                            <Rocket className="w-4 h-4" /> Apply All Corrections
+                            <Rocket className="w-4 h-4" /> {applying ? "Applying..." : "Apply All Corrections"}
                         </button>
                     </div>
                 ) : (
@@ -208,8 +225,8 @@ JSON response format:
                             <div
                                 key={v._id}
                                 className={`flex items-center justify-between gap-4 p-3 rounded-lg border transition-colors ${v.status === "active"
-                                        ? "bg-primary/5 border-primary/30"
-                                        : "bg-secondary/40 border-border"
+                                    ? "bg-primary/5 border-primary/30"
+                                    : "bg-secondary/40 border-border"
                                     }`}
                             >
                                 <div className="flex items-center gap-2 text-sm">
@@ -217,8 +234,8 @@ JSON response format:
                                     <span className="text-muted-foreground">— {v.changeDescription}</span>
                                     <span
                                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${v.status === "active"
-                                                ? "bg-emerald-500/20 text-emerald-400"
-                                                : "bg-secondary text-muted-foreground"
+                                            ? "bg-emerald-500/20 text-emerald-400"
+                                            : "bg-secondary text-muted-foreground"
                                             }`}
                                     >
                                         {v.status}
@@ -227,9 +244,10 @@ JSON response format:
                                 {v.status !== "active" && (
                                     <button
                                         onClick={() => handleRollback(v._id)}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                        disabled={rollingBack === v._id}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${rollingBack === v._id ? "bg-secondary/50 cursor-not-allowed opacity-50" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
                                     >
-                                        <RotateCcw className="w-3.5 h-3.5" /> Rollback
+                                        <RotateCcw className={`w-3.5 h-3.5 ${rollingBack === v._id ? "animate-spin" : ""}`} /> {rollingBack === v._id ? "Rolling back..." : "Rollback"}
                                     </button>
                                 )}
                             </div>

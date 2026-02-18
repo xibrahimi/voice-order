@@ -3,9 +3,10 @@ import { Mic, Square, Upload } from "lucide-react";
 
 interface Props {
     onAudioReady: (base64: string, mimeType: string) => void;
+    disabled?: boolean;
 }
 
-export function AudioInput({ onAudioReady }: Props) {
+export function AudioInput({ onAudioReady, disabled = false }: Props) {
     const [recording, setRecording] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [fileName, setFileName] = useState("");
@@ -51,11 +52,14 @@ export function AudioInput({ onAudioReady }: Props) {
 
         const base64 = await blobToBase64(blob);
         const url = URL.createObjectURL(blob);
+        // Use the real MIME type the browser recorded in (strip codecs param)
+        const actualMime = mr.mimeType.includes("webm") ? "audio/webm" : "audio/ogg";
+        const ext = mr.mimeType.includes("webm") ? "webm" : "ogg";
         setAudioUrl(url);
-        setFileName("recording.ogg");
+        setFileName(`recording.${ext}`);
         setRecording(false);
 
-        onAudioReady(base64, "audio/ogg");
+        onAudioReady(base64, actualMime);
     };
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,9 +91,12 @@ export function AudioInput({ onAudioReady }: Props) {
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                     onClick={recording ? stopRecording : startRecording}
+                    disabled={disabled && !recording}
                     className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none ${recording
                         ? "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse-record"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : disabled
+                            ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
                         }`}
                 >
                     {recording ? (
@@ -103,13 +110,14 @@ export function AudioInput({ onAudioReady }: Props) {
                     )}
                 </button>
                 <span className="text-xs text-muted-foreground">or</span>
-                <label className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 sm:flex-none">
+                <label className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none ${disabled ? "cursor-not-allowed opacity-50 bg-secondary text-muted-foreground" : "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
                     <Upload className="w-4 h-4" /> Upload File
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept=".mp3,.ogg,.wav,.m4a,.aac,.flac,.webm"
                         hidden
+                        disabled={disabled}
                         onChange={handleFile}
                     />
                 </label>

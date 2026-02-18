@@ -35,22 +35,28 @@ export function OrderHistory({ companyId, companyName }: Props) {
         orderId: string;
     } | null>(null);
     const [teachMeaning, setTeachMeaning] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const addCorrection = useMutation(api.corrections.addCorrection);
 
     const toggle = (id: string) =>
         setExpandedId((prev) => (prev === id ? null : id));
 
     const submitTeach = async () => {
-        if (!teachForm || !teachMeaning.trim()) return;
-        await addCorrection({
-            orderId: teachForm.orderId as any,
-            type: "teach_term",
-            termHeard: teachForm.heard,
-            termMeaning: teachMeaning.trim(),
-        });
-        setTeachForm(null);
-        setTeachMeaning("");
-        alert("Correction saved!");
+        if (!teachForm || !teachMeaning.trim() || submitting) return;
+        setSubmitting(true);
+        try {
+            await addCorrection({
+                orderId: teachForm.orderId as any,
+                type: "teach_term",
+                termHeard: teachForm.heard,
+                termMeaning: teachMeaning.trim(),
+            });
+            setTeachForm(null);
+            setTeachMeaning("");
+            alert("Correction saved!");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const formatDate = (ts: number) =>
@@ -483,9 +489,10 @@ export function OrderHistory({ companyId, companyName }: Props) {
                             </button>
                             <button
                                 onClick={submitTeach}
-                                className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                disabled={submitting}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${submitting ? "bg-primary/50 cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                             >
-                                Save Correction
+                                {submitting ? "Saving..." : "Save Correction"}
                             </button>
                         </div>
                     </div>

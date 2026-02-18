@@ -76,6 +76,11 @@ export const processOrder = internalAction({
             const audioBlob = await audioResponse.arrayBuffer();
             const audioBase64 = Buffer.from(audioBlob).toString("base64");
 
+            // Detect the real MIME type from the storage response
+            const contentType = audioResponse.headers.get("content-type") || "audio/ogg";
+            // Strip any charset/params, keep just the MIME base (e.g. "audio/webm")
+            const audioMimeType = contentType.split(";")[0].trim();
+
             // 5. Build catalog (pipe-delimited)
             const catalog = products
                 .map((p: any) => `${p.name}|${p.size}|${p.price}`)
@@ -94,7 +99,7 @@ export const processOrder = internalAction({
                                 text: `PRODUCT CATALOG:\n${catalog}\n\nListen to this voice note and match products:`,
                             },
                             {
-                                inlineData: { mimeType: "audio/ogg", data: audioBase64 },
+                                inlineData: { mimeType: audioMimeType, data: audioBase64 },
                             },
                         ],
                     },

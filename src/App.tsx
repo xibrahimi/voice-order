@@ -263,7 +263,10 @@ export default function App() {
                                     Voice Input
                                 </h2>
                             </div>
-                            <AudioInput onAudioReady={handleAudioReady} />
+                            <AudioInput
+                                onAudioReady={handleAudioReady}
+                                disabled={loading || order?.status === "processing"}
+                            />
                         </div>
 
                         {/* Step 3: Processing Status */}
@@ -282,6 +285,12 @@ export default function App() {
                                     <span className="text-sm">Uploading audio...</span>
                                 </div>
                             )}
+                            {!loading && orderId && !order && (
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <div className="spinner" />
+                                    <span className="text-sm">Loading order...</span>
+                                </div>
+                            )}
                             {order?.status === "processing" && (
                                 <div className="flex items-center gap-3 text-muted-foreground">
                                     <div className="spinner" />
@@ -290,12 +299,19 @@ export default function App() {
                                     </span>
                                 </div>
                             )}
+                            {order?.status === "completed" && (
+                                <div className="flex items-center gap-2 text-emerald-400">
+                                    <span className="text-sm font-medium">
+                                        ✅ Processing complete — {order.items?.length || 0} products matched
+                                    </span>
+                                </div>
+                            )}
                             {order?.status === "failed" && (
                                 <div className="text-sm text-destructive bg-destructive/10 rounded-lg p-3">
                                     Error: {order.error}
                                 </div>
                             )}
-                            {!loading && !order && (
+                            {!loading && !orderId && (
                                 <p className="text-sm text-muted-foreground">
                                     Record or upload audio above to start processing
                                 </p>
