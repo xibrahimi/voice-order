@@ -54,6 +54,8 @@ export function OrderHistory({ companyId, companyName }: Props) {
             setTeachForm(null);
             setTeachMeaning("");
             alert("Correction saved!");
+        } catch (err: any) {
+            alert("Error: " + err.message);
         } finally {
             setSubmitting(false);
         }

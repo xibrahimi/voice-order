@@ -44,14 +44,20 @@ export default function App() {
         api.orders.get,
         orderId ? { orderId: orderId as any } : "skip",
     );
+    const isOrderInFlight = Boolean(orderId) && (!order || order.status === "processing");
 
     const [companies, setCompanies] = useState<any[]>([]);
     const [companiesLoaded, setCompaniesLoaded] = useState(false);
 
     // Persist key state to localStorage
     useEffect(() => {
-        saveState({ orderId, companyId, companyName, view });
-    }, [orderId, companyId, companyName, view]);
+        saveState({
+            orderId: isOrderInFlight ? orderId : null,
+            companyId,
+            companyName,
+            view,
+        });
+    }, [orderId, companyId, companyName, view, isOrderInFlight]);
 
     // Load companies and auto-select "Steel X"
     useEffect(() => {
@@ -114,7 +120,14 @@ export default function App() {
                 headers: { "Content-Type": mimeType },
                 body: blob,
             });
-            const { storageId } = await uploadRes.json();
+            if (!uploadRes.ok) {
+                throw new Error(`Upload failed (${uploadRes.status})`);
+            }
+            const uploadBody = await uploadRes.json();
+            const storageId = uploadBody?.storageId;
+            if (!storageId) {
+                throw new Error("Upload succeeded but storageId is missing");
+            }
 
             const newOrderId = await createOrder({
                 companyId,
@@ -128,6 +141,17 @@ export default function App() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoToNew = () => {
+        setView("new");
+        if (!order || order.status !== "processing") {
+            setOrderId(null);
+        }
+    };
+
+    const handleStartNewOrder = () => {
+        setOrderId(null);
     };
 
     return (
@@ -147,7 +171,7 @@ export default function App() {
                         {view !== "admin" && (
                             <>
                                 <button
-                                    onClick={() => setView("new")}
+                                    onClick={handleGoToNew}
                                     className={`inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${view === "new"
                                         ? "bg-primary text-primary-foreground"
                                         : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -300,15 +324,29 @@ export default function App() {
                                 </div>
                             )}
                             {order?.status === "completed" && (
-                                <div className="flex items-center gap-2 text-emerald-400">
+                                <div className="flex items-center justify-between gap-3">
                                     <span className="text-sm font-medium">
                                         ✅ Processing complete — {order.items?.length || 0} products matched
                                     </span>
+                                    <button
+                                        onClick={handleStartNewOrder}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                    >
+                                        Start New Order
+                                    </button>
                                 </div>
                             )}
                             {order?.status === "failed" && (
-                                <div className="text-sm text-destructive bg-destructive/10 rounded-lg p-3">
-                                    Error: {order.error}
+                                <div className="space-y-3">
+                                    <div className="text-sm text-destructive bg-destructive/10 rounded-lg p-3">
+                                        Error: {order.error}
+                                    </div>
+                                    <button
+                                        onClick={handleStartNewOrder}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                                    >
+                                        Start New Order
+                                    </button>
                                 </div>
                             )}
                             {!loading && !orderId && (

@@ -20,7 +20,7 @@ Domain knowledge:
 - ONLY return products from the catalog. Never invent.
 
 JSON response format:
-{"items":[{"name":"exact catalog name","size":"catalog size","price":number,"quantity":number,"unit":"naali or adad","confidence":"high|medium|low","notes":"any assumption"}],"unmatched":[{"heard":"what was said","reason":"why no match"}]}`;
+{"transcript":"full transcription of what the speaker said in their original language","items":[{"name":"exact catalog name","size":"catalog size","price":number,"quantity":number,"unit":"naali or adad","confidence":"high|medium|low","notes":"any assumption"}],"unmatched":[{"heard":"what was said","reason":"why no match"}]}`;
 
 export async function matchProducts(audio: AudioData, products: Product[]): Promise<GeminiResult> {
     // Compact catalog to save tokens

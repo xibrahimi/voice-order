@@ -35,6 +35,8 @@ export function OrderResults({ order, companyName }: Props) {
             setTeachForm(null);
             setTeachMeaning("");
             alert("Correction saved! Go to Admin → Apply to update the system prompt.");
+        } catch (err: any) {
+            alert("Error: " + err.message);
         } finally {
             setSubmitting(false);
         }

@@ -6,6 +6,7 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { DEFAULT_SYSTEM_PROMPT } from "./systemPrompt";
 
 // ── Public: Get the currently active system prompt ──
 export const getActive = query({
@@ -34,9 +35,10 @@ export const getHistory = query({
 
 // ── Public: Seed the initial system prompt ──
 export const seed = mutation({
-    args: { prompt: v.string() },
+    // Keep optional arg for backward compatibility with older clients.
+    args: { prompt: v.optional(v.string()) },
     returns: v.id("prompt_versions"),
-    handler: async (ctx, args) => {
+    handler: async (ctx) => {
         const existing = await ctx.db
             .query("prompt_versions")
             .withIndex("by_version")
@@ -44,7 +46,7 @@ export const seed = mutation({
         if (existing) throw new Error("Prompt already seeded");
 
         return await ctx.db.insert("prompt_versions", {
-            prompt: args.prompt,
+            prompt: DEFAULT_SYSTEM_PROMPT,
             version: 1,
             status: "active",
             source: "seed",

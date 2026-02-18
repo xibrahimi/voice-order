@@ -15,6 +15,7 @@ import type * as ordersNode from "../ordersNode.js";
 import type * as products from "../products.js";
 import type * as prompts from "../prompts.js";
 import type * as promptsNode from "../promptsNode.js";
+import type * as systemPrompt from "../systemPrompt.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   prompts: typeof prompts;
   promptsNode: typeof promptsNode;
+  systemPrompt: typeof systemPrompt;
 }>;
 
 /**

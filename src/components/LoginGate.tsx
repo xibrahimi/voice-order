@@ -34,7 +34,7 @@ export function LoginGate({ children }: Props) {
             setSeeded(true);
             seedAdmin().catch(() => { });
         }
-    }, [seeded]);
+    }, [seeded, seedAdmin]);
 
     // Validate session against DB on load
     const sessionCheck = useQuery(
@@ -48,7 +48,7 @@ export function LoginGate({ children }: Props) {
             localStorage.removeItem(SESSION_KEY);
             setSession(null);
         }
-    }, [sessionCheck]);
+    }, [session, sessionCheck]);
 
     // If session is valid, show children
     if (session && sessionCheck?.success) {

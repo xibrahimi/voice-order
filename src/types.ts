@@ -20,6 +20,7 @@ export interface MatchedItem {
 }
 
 export interface GeminiResult {
+    transcript?: string;
     items: MatchedItem[];
     unmatched: { heard: string; reason: string }[];
 }
