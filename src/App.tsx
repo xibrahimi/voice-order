@@ -16,6 +16,10 @@ type PersistedAppState = {
     orderId: string | null;
     view: View;
 };
+type PendingAudio = {
+    base64: string;
+    mimeType: string;
+};
 
 const STORAGE_KEY = "voiceorder_state";
 
@@ -46,6 +50,7 @@ export default function App() {
     const [orderId, setOrderId] = useState<string | null>(
         typeof saved.orderId === "string" ? saved.orderId : null,
     );
+    const [pendingAudio, setPendingAudio] = useState<PendingAudio | null>(null);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<View>(normalizeView(saved.view));
 
@@ -102,6 +107,7 @@ export default function App() {
     const handleCompanyChange = async (id: string) => {
         setCompanyId(id);
         setOrderId(null);
+        setPendingAudio(null);
         if (!id) {
             setProducts([]);
             setCompanyName("");
@@ -117,25 +123,35 @@ export default function App() {
         }
     };
 
-    const handleAudioReady = async (base64: string, mimeType: string) => {
+    const handleAudioReady = (base64: string, mimeType: string) => {
+        if (!companyId || products.length === 0) {
+            alert("Select a company first");
+            return;
+        }
+        setOrderId(null);
+        setPendingAudio({ base64, mimeType });
+    };
+
+    const handleCreateQuotation = async () => {
+        if (!pendingAudio || loading || isOrderLoading || order?.status === "processing") {
+            return;
+        }
         if (!companyId || products.length === 0) {
             alert("Select a company first");
             return;
         }
         setLoading(true);
-        setOrderId(null);
-
         try {
             const uploadUrl = await generateUploadUrl();
 
-            const bytes = atob(base64);
+            const bytes = atob(pendingAudio.base64);
             const arr = new Uint8Array(bytes.length);
             for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-            const blob = new Blob([arr], { type: mimeType });
+            const blob = new Blob([arr], { type: pendingAudio.mimeType });
 
             const uploadRes = await fetch(uploadUrl, {
                 method: "POST",
-                headers: { "Content-Type": mimeType },
+                headers: { "Content-Type": pendingAudio.mimeType },
                 body: blob,
             });
             if (!uploadRes.ok) {
@@ -152,6 +168,7 @@ export default function App() {
                 companyName,
                 audioStorageId: storageId,
             });
+            setPendingAudio(null);
             setOrderId(newOrderId);
         } catch (err: any) {
             console.error(err);
@@ -170,6 +187,7 @@ export default function App() {
 
     const handleStartNewOrder = () => {
         setOrderId(null);
+        setPendingAudio(null);
     };
 
     return (
@@ -328,6 +346,19 @@ export default function App() {
                                     Match Products
                                 </h2>
                             </div>
+                            {!loading && !isOrderLoading && !orderId && pendingAudio && (
+                                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 p-3 flex items-center justify-between gap-3">
+                                    <span className="text-sm text-foreground">
+                                        Audio is ready. Click to create quotation.
+                                    </span>
+                                    <button
+                                        onClick={handleCreateQuotation}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                    >
+                                        Create Quotation
+                                    </button>
+                                </div>
+                            )}
                             {loading && (
                                 <div className="flex items-center gap-3 text-muted-foreground">
                                     <div className="spinner" />
@@ -389,7 +420,7 @@ export default function App() {
                             )}
                             {!loading && !orderId && (
                                 <p className="text-sm text-muted-foreground">
-                                    Record or upload audio above to start processing
+                                    Record or upload audio above, then click "Create Quotation"
                                 </p>
                             )}
                         </div>
