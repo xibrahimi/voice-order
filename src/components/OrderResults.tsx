@@ -96,7 +96,7 @@ export function OrderResults({ order, companyName }: Props) {
         <div className="space-y-6">
             {/* Transcript */}
             {order.transcript && (
-                <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+                <div className="rounded-xl border border-border bg-card p-3 sm:p-6">
                     <h3 className="text-lg font-semibold text-foreground mb-3">
                         🗣️ Transcript
                     </h3>
@@ -107,7 +107,7 @@ export function OrderResults({ order, companyName }: Props) {
             )}
 
             {items.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-xl border border-border bg-card p-3 sm:p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-foreground">
                             Matched Products ({items.length})
@@ -159,7 +159,7 @@ export function OrderResults({ order, companyName }: Props) {
             )}
 
             {unmatched.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-xl border border-border bg-card p-3 sm:p-6">
                     <h3 className="text-lg font-semibold text-foreground mb-4">
                         Unmatched Items ({unmatched.length})
                     </h3>
@@ -187,8 +187,8 @@ export function OrderResults({ order, companyName }: Props) {
 
             {/* Teach Modal */}
             {teachForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-3" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
+                    <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h4 className="text-lg font-semibold text-foreground">
                             Teach: "{teachForm.heard}"
                         </h4>

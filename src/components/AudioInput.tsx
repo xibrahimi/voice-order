@@ -168,7 +168,10 @@ export function AudioInput({
                 </label>
             </div>
             {recording && (
-                <span className="text-xs text-red-400">● Recording...</span>
+                <div className="flex items-center gap-2 text-red-400">
+                    <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                    <span className="text-xs font-medium">Recording...</span>
+                </div>
             )}
             {shownAudioUrl && (
                 <div className="space-y-1">

@@ -87,7 +87,7 @@ export function LoginGate({ children }: Props) {
         return (
             <div>
                 {/* Logout bar */}
-                <div className="bg-card/80 border-b border-border">
+                <div className="bg-card/80 border-b border-border" style={{ paddingTop: 'env(safe-area-inset-top, 0)' }}>
                     <div className="max-w-5xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
                             Logged in as <strong className="text-foreground">{session.username}</strong>
@@ -141,8 +141,8 @@ export function LoginGate({ children }: Props) {
     };
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <div className="w-full max-w-sm">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
+            <div className="w-full max-w-sm animate-fade-in">
                 {/* Logo / Header */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-2xl bg-primary/20 mx-auto flex items-center justify-center mb-4">
@@ -155,7 +155,7 @@ export function LoginGate({ children }: Props) {
                 </div>
 
                 {/* Login Form */}
-                <form onSubmit={handleLogin} className="rounded-xl border border-border bg-card p-6 space-y-4">
+                <form onSubmit={handleLogin} className="rounded-xl border border-border bg-card p-5 sm:p-6 space-y-4">
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-foreground">
                             Username

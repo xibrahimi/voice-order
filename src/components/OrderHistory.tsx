@@ -186,7 +186,7 @@ export function OrderHistory({ companyId, companyName }: Props) {
 
     if (!orders) {
         return (
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 text-muted-foreground">
                     <div className="spinner" />
                     <span className="text-sm">Loading order history...</span>
@@ -197,7 +197,7 @@ export function OrderHistory({ companyId, companyName }: Props) {
 
     if (orders.length === 0) {
         return (
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <p className="text-sm text-muted-foreground">
                     No orders yet. Record a voice note above to create your first
                     quotation.
@@ -230,7 +230,7 @@ export function OrderHistory({ companyId, companyName }: Props) {
                         {/* Summary row */}
                         <button
                             onClick={() => toggle(order._id)}
-                            className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
+                            className="w-full flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4 text-left hover:bg-secondary/30 transition-colors"
                         >
                             <div className="flex items-center gap-2">
                                 {statusIcon(order.status)}
@@ -282,7 +282,7 @@ export function OrderHistory({ companyId, companyName }: Props) {
 
                         {/* Expanded details */}
                         {isExpanded && (
-                            <div className="border-t border-border px-5 py-4 space-y-4">
+                            <div className="border-t border-border px-3 sm:px-5 py-3 sm:py-4 space-y-4">
                                 {/* Audio Player */}
                                 {order.audioUrl && (
                                     <div className="space-y-1">
@@ -466,8 +466,8 @@ export function OrderHistory({ companyId, companyName }: Props) {
 
             {/* Teach Modal */}
             {teachForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-3" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
+                    <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h4 className="text-lg font-semibold text-foreground">
                             Teach: "{teachForm.heard}"
                         </h4>

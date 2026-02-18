@@ -78,7 +78,7 @@ export function PromptAdmin() {
     return (
         <div className="space-y-6">
             {/* Active Prompt */}
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
                         📝
@@ -121,7 +121,7 @@ export function PromptAdmin() {
             </div>
 
             {/* Add Terminology */}
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
                         📚
@@ -130,7 +130,7 @@ export function PromptAdmin() {
                         Add Terminology
                     </h2>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <input
                         type="text"
                         placeholder='Local term (e.g., "chooda pipe")'
@@ -155,7 +155,7 @@ export function PromptAdmin() {
             </div>
 
             {/* Pending Corrections */}
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
                         🔄
@@ -205,7 +205,7 @@ export function PromptAdmin() {
             </div>
 
             {/* Prompt History */}
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
                         📜

@@ -7,6 +7,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"Space Mono"', '"JetBrains Mono"', '"Fira Code"', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
